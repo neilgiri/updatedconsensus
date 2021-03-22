@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package proto;
+
+import "gorums.proto";
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/relab/hotstuff/internal/proto";
+
+service Hotstuff {
+  rpc Propose(Block) returns (google.protobuf.Empty) {
+    option (gorums.multicast) = true;
+  }
+
+  rpc Vote(PartialCert) returns (google.protobuf.Empty) {
+    option (gorums.unicast) = true;
+  }
+
+  rpc NewView(NewViewMsg) returns (google.protobuf.Empty) {
+    option (gorums.unicast) = true;
+  }
+
+  rpc Fetch(BlockHash) returns (google.protobuf.Empty) {
+    option (gorums.multicast) = true;
+  }
+
+  rpc Deliver(Block) returns (google.protobuf.Empty) {
+    option (gorums.unicast) = true;
+  }
+}
+
+message BlockHash { bytes Hash = 1; }
+
+message Block {
+  bytes Parent = 1;
+  QuorumCert QC = 2;
+  uint64 View = 3;
+  bytes Command = 4;
+  uint32 Proposer = 5;
+}
+
+message Signature {
+  uint32 ReplicaID = 1;
+  bytes R = 2;
+  bytes S = 3;
+}
+
+message PartialCert {
+  Signature Sig = 1;
+  bytes Hash = 2;
+}
+
+message QuorumCert {
+  map<uint32, Signature> Sigs = 1;
+  bytes Hash = 2;
+}
+
+message NewViewMsg {
+  uint64 View = 1;
+  QuorumCert QC = 2;
+}
